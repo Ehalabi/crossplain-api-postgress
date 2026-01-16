@@ -1,0 +1,9 @@
+# ignore everything
+*
+
+
+# exclude stuff
+!**/
+!.gitignore
+!*.yaml
+!*.yml
