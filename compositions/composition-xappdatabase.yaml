@@ -1,0 +1,48 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: xappdatabase-composition
+spec:
+  compositeTypeRef:
+    apiVersion: database.platform.example.com/v1alpha1
+    kind: XAppDatabase
+  resources:
+    - name: provisioner-job
+      base:
+        apiVersion: kubernetes.crossplane.io/v1alpha2
+        kind: Object
+        spec:
+          forProvider:
+            manifest:
+              apiVersion: batch/v1
+              kind: Job
+              metadata:
+                name: orders-db-provisioner
+                namespace: default
+              spec:
+                template:
+                  spec:
+                    restartPolicy: Never
+                    containers:
+                      - name: create-db
+                        image: postgres:15
+                        env:
+                          - name: PGPASSWORD
+                            value: "pass1234"
+                        command: ["sh", "-c"]
+                        args:
+                          - |
+                            psql -h postgres -U appuser -d postgres -c "CREATE DATABASE app_orders;" || true
+                            psql -h postgres -U appuser -d app_orders -c "
+                            CREATE TABLE IF NOT EXISTS nano_service_stats (
+                              date timestamp,
+                              counter_values int,
+                              restart_count int
+                            );
+                            "
+          providerConfigRef:
+            name: default
+      readinessChecks:
+        - type: MatchInteger
+          fieldPath: status.atProvider.manifest.status.succeeded
+          matchInteger: 1

@@ -1,0 +1,17 @@
+apiVersion: database.platform.example.com/v1alpha1
+kind: XAppDatabase
+metadata:
+  name: orders-db
+spec:
+  parameters:
+    database: app_orders
+    schema: app            
+    tables:             
+      - name: nano_service_stats
+        columns:
+          - name: date
+            type: timstamp
+          - name: counter_values
+            type: int
+          - name: restart_count
+            type: int
